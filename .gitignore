@@ -6,11 +6,11 @@ __pycache__/
 venv/
 
 # Data (generated at runtime)
-data/*.xlsx
-data/*.csv
-data/*.json
-data/*.png
-data/*.html
+data/**/*.xlsx
+data/**/*.csv
+data/**/*.json
+data/**/*.png
+data/**/*.html
 !data/.gitkeep
 
 # Node
