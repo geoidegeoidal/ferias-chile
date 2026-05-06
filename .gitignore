@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Data (generated at runtime)
+data/*.xlsx
+data/*.csv
+data/*.json
+data/*.png
+data/*.html
+!data/.gitkeep
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
