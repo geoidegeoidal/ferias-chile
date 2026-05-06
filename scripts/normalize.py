@@ -227,25 +227,37 @@ def run():
     print(f"[NORM] Registros con coord invalidas: {skipped_coords}")
     print(f"[NORM] Registros unicos (dedup): {len(deduped)}")
 
-    # Guardar JSON
+    # Guardar JSON con todas las entradas (cada fila = un dia de feria)
     output = {
         "metadata": {
             "fecha_extraccion": datetime.now().isoformat(),
-            "total_registros": len(deduped),
+            "total_registros": len(normalized),
+            "total_unicas": len(deduped),
         },
-        "ferias": deduped,
+        "ferias": normalized,
     }
 
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
     print(f"\n[NORM] JSON guardado: {OUTPUT_JSON}")
 
-    # Guardar CSV
+    # Guardar CSV con todas las entradas (sin dedup - cada fila es un dia de feria)
     try:
         import pandas as pd
-        df = pd.DataFrame(deduped)
-        df.to_csv(OUTPUT_CSV, index=False, encoding="utf-8-sig")
-        print(f"[NORM] CSV guardado: {OUTPUT_CSV}")
+        # Primero el CSV con todos
+        df_all = pd.DataFrame(normalized)
+        # Ordenar por region, comuna, nombre
+        df_all = df_all.sort_values(["region", "comuna", "nombre_feria"]).reset_index(drop=True)
+        df_all.to_csv(OUTPUT_CSV, index=False, encoding="utf-8-sig")
+        print(f"[NORM] CSV guardado: {OUTPUT_CSV} ({len(df_all)} registros)")
+        
+        # CSV deduplicado (una fila por feria unica)
+        deduped_df = df_all.drop_duplicates(
+            subset=["nombre_feria", "comuna", "region", "calle_principal", "calle_inicio", "calle_termino"]
+        ).reset_index(drop=True)
+        deduped_csv = DATA_DIR / "ferias_libres_unicas.csv"
+        deduped_df.to_csv(deduped_csv, index=False, encoding="utf-8-sig")
+        print(f"[NORM] CSV unicas guardado: {deduped_csv} ({len(deduped_df)} registros)")
     except ImportError:
         print("[NORM] pandas no disponible, CSV no generado")
 

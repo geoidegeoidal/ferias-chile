@@ -5,13 +5,16 @@ __pycache__/
 .venv/
 venv/
 
-# Data (generated at runtime)
+# Data (generated at runtime - Excel raw files)
 data/**/*.xlsx
-data/**/*.csv
-data/**/*.json
 data/**/*.png
 data/**/*.html
 !data/.gitkeep
+
+# Keep processed outputs
+!data/ferias_libres.json
+!data/ferias_libres.csv
+!data/ferias_libres_unicas.csv
 
 # Node
 node_modules/
