@@ -8,6 +8,7 @@ import { initMap } from './map.js';
 import { initFilters } from './filters.js';
 import { initSearch } from './search.js';
 import { initStats } from './stats.js';
+import { initOnboarding, startTour } from './onboarding.js';
 
 async function main() {
   const loadingOverlay = document.getElementById('loading-overlay');
@@ -27,6 +28,8 @@ async function main() {
       initStats();
       initMobileControls();
       initStatsToggle();
+      initHelpButton();
+      initOnboarding();
 
       // Hide loading overlay
       if (loadingOverlay) {
@@ -124,6 +127,18 @@ function registerSW() {
         });
     });
   }
+}
+
+/**
+ * Help button — restarts the onboarding tour.
+ */
+function initHelpButton() {
+  const btn = document.getElementById('btn-help');
+  if (!btn) return;
+
+  btn.addEventListener('click', () => {
+    startTour();
+  });
 }
 
 // Boot

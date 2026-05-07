@@ -36,6 +36,8 @@ Transformamos los datos abiertos de ODEPA en una **aplicación web progresiva** 
 | **PWA + Offline** | Service Worker con cache de app shell, datos y tiles de mapa. Funciona sin conexión. |
 | **Diseño Responsive** | Sidebar adaptable, controles táctiles, optimizado para móvil y desktop. |
 | **SEO Completo** | Open Graph, Twitter Cards, JSON-LD, canonical tags, manifest.json. |
+| **Mapa Claro / Oscuro** | Toggle instantáneo entre CartoDB Positron (claro) y Dark Matter (oscuro). Persiste preferencia. |
+| **Tour Guiado** | Onboarding interactivo para nuevos usuarios. Destaca cada elemento con spotlight y tooltips. Se puede reiniciar desde el botón "?". |
 
 ---
 
@@ -44,7 +46,7 @@ Transformamos los datos abiertos de ODEPA en una **aplicación web progresiva** 
 | Capa | Tecnología |
 |---|---|
 | **Bundler** | Vite 6 (Vanilla JS) |
-| **Mapas** | MapLibre GL JS 4.7 + CartoDB Dark Matter |
+| **Mapas** | MapLibre GL JS 4.7 + CartoDB Positron / Dark Matter |
 | **Visualización** | D3.js 7 (tree-shakeable) |
 | **Estilos** | CSS Vanilla con Custom Properties (Design System "Observatorio") |
 | **Tipografía** | Sora (Display), DM Sans (Body), JetBrains Mono (Data) |
@@ -74,7 +76,7 @@ web/
 ├── css/
 │   ├── design-system.css   # Tokens, reset, tipografía
 │   ├── layout.css          # Grid, sidebar, mapa, responsive
-│   ├── components.css      # Botones, filtros, badges, popups, charts
+│   ├── components.css      # Botones, filtros, badges, popups, charts, onboarding
 │   └── animations.css      # Keyframes, utilidades, reduced-motion
 ├── js/
 │   ├── app.js              # Entry point, orquestación, registro de SW
@@ -82,7 +84,8 @@ web/
 │   ├── map.js              # MapLibre, markers, clustering, popups, geolocalización
 │   ├── filters.js          # UI de filtros (región, comuna, día, puestos, badges)
 │   ├── search.js           # Búsqueda fuzzy con highlighting y keyboard nav
-│   └── stats.js            # D3.js: heatmap, ranking, treemap
+│   ├── stats.js            # D3.js: heatmap, ranking, treemap
+│   └── onboarding.js       # Tour guiado interactivo (spotlight + tooltips)
 └── public/                 # Copiado estático a docs/
     ├── data/
     │   ├── ferias.json     # GeoJSON (1,764 features)
