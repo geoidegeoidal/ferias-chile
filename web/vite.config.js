@@ -4,7 +4,7 @@ import { resolve } from 'path';
 export default defineConfig({
   root: '.',
   base: '/ferias-chile/',
-  publicDir: 'data',
+  publicDir: 'public',
   build: {
     outDir: '../docs',
     emptyOutDir: true,

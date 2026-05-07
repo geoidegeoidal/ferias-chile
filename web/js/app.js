@@ -100,5 +100,32 @@ function initStatsToggle() {
   });
 }
 
+/**
+ * Register Service Worker for offline support.
+ */
+function registerSW() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then((reg) => {
+          console.log('[PWA] Service Worker registered:', reg.scope);
+          // Listen for updates
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            newWorker?.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[PWA] New version available. Reload to update.');
+              }
+            });
+          });
+        })
+        .catch((err) => {
+          console.error('[PWA] Service Worker registration failed:', err);
+        });
+    });
+  }
+}
+
 // Boot
 main();
+registerSW();

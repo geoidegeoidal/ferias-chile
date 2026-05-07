@@ -12,7 +12,7 @@
 | **Fase 1** | Mapa Interactivo (MapLibre) y Popups Ricos | ✅ Completado | OpenCode (Kimi K2.6) |
 | **Fase 2** | Filtros Avanzados y Búsqueda Fuzzy | ✅ Completado | OpenCode (DeepSeek V4) |
 | **Fase 3** | Dashboard de Estadísticas (D3.js) | ✅ Completado | OpenCode (GLM 5.1) |
-| **Fase 4** | Pulido, PWA y Deploy (GitHub Pages) | ⏳ Pendiente | Antigravity (Opus 4.6) |
+| **Fase 4** | Pulido, PWA y Deploy (GitHub Pages) | ✅ Completado | OpenCode (GLM 5.1) |
 
 ---
 
@@ -64,11 +64,20 @@ Inspirada en dashboards premium como Kepler.gl o Datawheel.
   - Treemap cell → filtra por región
 - **Tooltips**: Hover muestra conteo exacto con tooltip flotante.
 
-### Fase 4: Deploy y PWA
+### Fase 4: Deploy y PWA ✅
 **Objetivo**: Producción y offline.
-- **Vite**: Configurar `vite.config.js` para el deploy en la carpeta `docs/`.
-- **PWA**: Crear `manifest.json` y Service Worker básico para cache de tiles.
-- **SEO**: Meta tags completos para Open Graph y Twitter Cards.
+- **Vite**: `vite.config.js` configurado con `base: '/ferias-chile/'`, `outDir: '../docs'`, `publicDir: 'public'`.
+- **PWA**:
+  - `manifest.json` con nombre, iconos PNG (192, 512, maskable), theme colors.
+  - Service Worker (`sw.js`) con estrategias: cache-first para app shell y datos, stale-while-revalidate con límite de 500 tiles para mapas, cache-first para fuentes Google.
+  - Registro del SW en `app.js` con detección de actualizaciones.
+  - Iconos generados programáticamente con Pillow (fondo Observatorio + diseño tienda).
+- **SEO**:
+  - Meta tags Open Graph completos (title, description, image, locale, site_name).
+  - Twitter Card (`summary_large_image`).
+  - OG image generado programáticamente (1200×630).
+  - `apple-mobile-web-app-capable`, `theme-color`, `mobile-web-app-capable`.
+- **Estructura `public/`**: `data/`, `icons/`, `manifest.json`, `sw.js` copiados a `docs/` en build.
 
 ---
 

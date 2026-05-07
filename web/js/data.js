@@ -63,8 +63,8 @@ export function isOpenToday(properties) {
  */
 export async function loadData() {
   const [geojsonRes, statsRes] = await Promise.all([
-    fetch('./ferias.json'),
-    fetch('./stats.json'),
+    fetch('./data/ferias.json'),
+    fetch('./data/stats.json'),
   ]);
 
   if (!geojsonRes.ok) throw new Error(`Failed to load ferias.json: ${geojsonRes.status}`);

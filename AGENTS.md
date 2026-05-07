@@ -73,22 +73,31 @@ num_puestos, fuente, archivo_origen, fecha_datos
 ### Estructura
 ```
 web/
-├── index.html              # App shell con CSP, SEO, JSON-LD
+├── index.html              # App shell con CSP, SEO, JSON-LD, PWA meta tags
+├── vite.config.js          # Config Vite: base, outDir, publicDir
 ├── css/
 │   ├── design-system.css   # Tokens, reset, tipografía
 │   ├── layout.css          # Grid, sidebar, mapa, responsive
-│   ├── components.css      # Botones, filtros, badges, popups
+│   ├── components.css      # Botones, filtros, badges, popups, charts
 │   └── animations.css      # Keyframes, utilidades, reduced-motion
 ├── js/
-│   ├── app.js              # Entry point, orquestación
+│   ├── app.js              # Entry point, orquestación, SW registration
 │   ├── data.js             # Carga de datos, filtros, estado
 │   ├── map.js              # MapLibre, markers, clustering, popups
 │   ├── filters.js          # UI de filtros (región, comuna, día, puestos)
 │   ├── search.js           # Búsqueda fuzzy con highlighting
 │   └── stats.js            # D3.js charts (heatmap, ranking, treemap)
-├── data/
-│   ├── ferias.json         # GeoJSON FeatureCollection (1,764 ferias)
-│   └── stats.json          # Estadísticas pre-computadas
+├── public/                 # Copiado tal cual a docs/ en build
+│   ├── data/
+│   │   ├── ferias.json     # GeoJSON FeatureCollection (1,764 ferias)
+│   │   └── stats.json      # Estadísticas pre-computadas
+│   ├── icons/
+│   │   ├── icon-192.png
+│   │   ├── icon-512.png
+│   │   ├── icon-maskable-512.png
+│   │   └── og-image.png
+│   ├── manifest.json       # PWA manifest
+│   └── sw.js               # Service Worker (cache estático + tiles)
 └── package.json
 ```
 
@@ -115,7 +124,14 @@ web/
 - **Interactividad bidireccional:** Click en cualquier gráfico → setFilters() → mapa se actualiza
 - **Tooltips flotantes:** Hover muestra nombre y conteo exacto
 - **Color scale Observatorio:** Heatmap utiliza gradiente desde dark surface → cyan accent
-#### Fase 4: Pulido, PWA y Deploy (pendiente)
+#### Fase 4: Pulido, PWA y Deploy ✅
+- **Vite config:** `base: '/ferias-chile/'`, `outDir: '../docs'`, `publicDir: 'public'`
+- **PWA manifest:** Nombre, iconos PNG (192, 512, maskable), theme colors, categories
+- **Service Worker:** Estrategias diferenciadas: cache-first (app shell, datos), stale-while-revalidate con límite 500 tiles (mapas), cache-first (fuentes). Offline fallback a `index.html`.
+- **Registro SW:** En `app.js` con listener de `updatefound` para detectar nuevas versiones.
+- **Iconos generados:** Con Pillow (fondo Observatorio + diseño tienda abstracto).
+- **OG image:** Generado programáticamente 1200×630 para Open Graph/Twitter Cards.
+- **SEO completo:** Open Graph, Twitter Card, JSON-LD, canonical, apple-mobile-web-app meta tags.
 
 ### Design System: Paleta "Observatorio"
 - **Fondo:** Deep Black `hsl(225, 25%, 6%)`
