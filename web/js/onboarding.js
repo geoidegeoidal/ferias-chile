@@ -37,12 +37,19 @@ const STEPS = [
     text: 'Panel de estadísticas con heatmaps por región y día, ranking de comunas y distribución nacional. Haz clic en cualquier gráfico para filtrar el mapa.',
     position: 'left',
     onBeforeShow: () => {
-      // Auto-open stats panel so the spotlight is visible
       const panel = document.getElementById('stats-panel');
       const btn = document.getElementById('btn-stats');
       if (panel && !panel.classList.contains('is-open')) {
         panel.classList.add('is-open');
         btn?.classList.add('is-active');
+      }
+    },
+    onAfterHide: () => {
+      const panel = document.getElementById('stats-panel');
+      const btn = document.getElementById('btn-stats');
+      if (panel && panel.classList.contains('is-open')) {
+        panel.classList.remove('is-open');
+        btn?.classList.remove('is-active');
       }
     },
   },
@@ -134,6 +141,11 @@ function teardown() {
 }
 
 async function showStep(index) {
+  const prevStep = STEPS[_current];
+  if (prevStep && prevStep.onAfterHide) {
+    prevStep.onAfterHide();
+  }
+
   _current = index;
   const step = STEPS[index];
 
