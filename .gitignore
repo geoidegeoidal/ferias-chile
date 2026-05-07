@@ -19,6 +19,9 @@ data/**/*.html
 # Node
 node_modules/
 
+# Generated docs (built by CI)
+docs/
+
 # OS
 .DS_Store
 Thumbs.db
