@@ -696,7 +696,7 @@ document.head.appendChild(popupStyle);
 let _addressPopup = null;
 let _addressMarker = null;
 
-export function showAddressOnMap(lng, lat, displayName) {
+export function showAddressOnMap(lng, lat, displayName, nearestFerias = []) {
   if (!map) return;
 
   if (_addressPopup) _addressPopup.remove();
@@ -711,22 +711,68 @@ export function showAddressOnMap(lng, lat, displayName) {
     .setLngLat([lng, lat])
     .addTo(map);
 
+  // Build nearby ferias HTML
+  let nearbyHtml = '';
+  if (nearestFerias.length > 0) {
+    nearbyHtml = `
+      <div style="margin-top: var(--sp-3); padding-top: var(--sp-3); border-top: 1px solid var(--border-subtle);">
+        <div style="font-size: var(--text-xs); font-weight: 600; letter-spacing: var(--tracking-wider); text-transform: uppercase; color: var(--text-tertiary); margin-bottom: var(--sp-2);">
+          Ferias cercanas
+        </div>
+        ${nearestFerias.map(({ feature, distance }) => {
+          const p = feature.properties;
+          const distText = distance < 1000
+            ? `${Math.round(distance)} m`
+            : `${(distance / 1000).toFixed(1)} km`;
+          const [flng, flat] = feature.geometry.coordinates;
+          return `
+            <button class="nearby-feria-btn" data-lng="${flng}" data-lat="${flat}">
+              <div class="nearby-feria-btn__name">${escapeHtml(p.nombre)}</div>
+              <div class="nearby-feria-btn__meta">
+                <span>${escapeHtml(p.direccion || p.calle_principal || '')}</span>
+                <span class="nearby-feria-btn__dist">${distText}</span>
+              </div>
+            </button>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
   _addressPopup = new maplibregl.Popup({
     closeButton: true,
-    closeOnClick: true,
-    maxWidth: '320px',
+    closeOnClick: false,
+    maxWidth: '340px',
     className: 'ferias-popup',
   })
     .setLngLat([lng, lat])
     .setHTML(`
       <div class="popup">
         <div class="popup__header">
-          <div class="popup__name">Dirección</div>
+          <div class="popup__name">📍 Dirección</div>
         </div>
         <div class="popup__section">
           <div style="font-size: var(--text-sm); color: var(--text-secondary);">${escapeHtml(displayName)}</div>
         </div>
+        ${nearbyHtml}
       </div>
     `)
     .addTo(map);
+
+  // Bind click handlers for nearby feria buttons
+  _addressPopup.getElement()?.querySelectorAll('.nearby-feria-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const flng = parseFloat(btn.dataset.lng);
+      const flat = parseFloat(btn.dataset.lat);
+      flyTo(flng, flat, 16);
+      // Find feature and show popup after fly
+      const feature = nearestFerias.find(nf =>
+        Math.abs(nf.feature.geometry.coordinates[0] - flng) < 0.0001 &&
+        Math.abs(nf.feature.geometry.coordinates[1] - flat) < 0.0001
+      )?.feature;
+      if (feature) {
+        setTimeout(() => showPopup(feature), 1300);
+      }
+    });
+  });
 }

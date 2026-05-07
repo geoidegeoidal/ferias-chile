@@ -552,6 +552,51 @@
   height: 30px;
 }
 
+/* Nearby ferias inside address popup */
+.nearby-feria-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--sp-2) var(--sp-3);
+  margin-bottom: var(--sp-1);
+  background: var(--color-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.nearby-feria-btn:hover {
+  background: var(--color-surface-3);
+  border-color: var(--color-accent);
+}
+
+.nearby-feria-btn__name {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: var(--leading-tight);
+  margin-bottom: 2px;
+}
+
+.nearby-feria-btn__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+
+.nearby-feria-btn__dist {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
 
 /* ============================================================
    MAP CONTROLS (custom styled)

@@ -103,10 +103,32 @@ function showTooltip(event, text) {
   const t = ensureTooltip();
   t.textContent = text;
   t.classList.add('is-visible');
-  const x = event.clientX + 14;
-  const y = event.clientY - 32;
+
+  // Initial position
+  let x = event.clientX + 14;
+  let y = event.clientY - 32;
   t.style.left = `${x}px`;
   t.style.top = `${y}px`;
+
+  // Measure and clamp after render
+  requestAnimationFrame(() => {
+    const rect = t.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const pad = 8;
+
+    if (x + rect.width > vw - pad) {
+      x = event.clientX - rect.width - 14;
+    }
+    if (x < pad) x = pad;
+    if (y + rect.height > vh - pad) {
+      y = event.clientY - rect.height - 14;
+    }
+    if (y < pad) y = pad;
+
+    t.style.left = `${x}px`;
+    t.style.top = `${y}px`;
+  });
 }
 
 function hideTooltip() {

@@ -1,13 +1,14 @@
 /**
  * onboarding.js — Guided tour for first-time users.
  * Custom lightweight implementation, no external dependencies.
+ * Responsive: tooltips clamp to viewport, invert position if needed.
  */
 
 const STORAGE_KEY = 'ferias-tour-completed';
 
 const STEPS = [
   {
-    target: null, // centered modal
+    target: null,
     title: 'Bienvenido a Ferias Chile',
     text: 'Esta plataforma te permite explorar las 1,764 ferias libres de Chile con datos abiertos de ODEPA. Te mostramos los principales elementos en un minuto.',
     position: 'center',
@@ -49,7 +50,7 @@ const STEPS = [
     position: 'left',
   },
   {
-    target: null, // centered modal
+    target: null,
     title: '¡Listo!',
     text: 'Ya conoces lo esencial. Explora las ferias libres de Chile y comparte el enlace. Si necesitas ayuda, usa el botón "?" en el header.',
     position: 'center',
@@ -63,20 +64,17 @@ let _spotlight = null;
 let _resizeHandler = null;
 let _keydownHandler = null;
 
-/**
- * Initialize onboarding. Shows tour only on first visit.
- */
+const TOOLTIP_WIDTH = 300;
+const TOOLTIP_HEIGHT = 170;
+const MARGIN = 16;
+const MOBILE_BREAKPOINT = 768;
+
 export function initOnboarding() {
   const completed = localStorage.getItem(STORAGE_KEY);
   if (completed) return;
-
-  // Delay slightly to let the UI settle
   setTimeout(() => startTour(), 1200);
 }
 
-/**
- * Start the tour from the beginning.
- */
 export function startTour() {
   _current = 0;
   buildDOM();
@@ -84,34 +82,25 @@ export function startTour() {
   bindGlobalEvents();
 }
 
-/**
- * Check if tour has been seen.
- */
 export function hasSeenTour() {
   return !!localStorage.getItem(STORAGE_KEY);
 }
 
-/**
- * Reset tour state (for testing or restart).
- */
 export function resetTour() {
   localStorage.removeItem(STORAGE_KEY);
 }
 
 function buildDOM() {
-  // Overlay backdrop
   _overlay = document.createElement('div');
   _overlay.className = 'onboarding-overlay';
   _overlay.setAttribute('role', 'dialog');
   _overlay.setAttribute('aria-modal', 'true');
   document.body.appendChild(_overlay);
 
-  // Spotlight hole
   _spotlight = document.createElement('div');
   _spotlight.className = 'onboarding-spotlight';
   _overlay.appendChild(_spotlight);
 
-  // Tooltip card
   _tooltip = document.createElement('div');
   _tooltip.className = 'onboarding-tooltip';
   _overlay.appendChild(_tooltip);
@@ -133,7 +122,6 @@ function showStep(index) {
   const step = STEPS[index];
   const target = step.target ? document.querySelector(step.target) : null;
 
-  // Position spotlight
   if (target) {
     positionSpotlight(target);
     _spotlight.style.display = 'block';
@@ -141,7 +129,6 @@ function showStep(index) {
     _spotlight.style.display = 'none';
   }
 
-  // Build tooltip content
   _tooltip.innerHTML = `
     <div class="onboarding-tooltip__header">
       <span class="onboarding-tooltip__step">${index + 1} / ${STEPS.length}</span>
@@ -160,14 +147,15 @@ function showStep(index) {
     </div>
   `;
 
-  // Position tooltip
-  if (target) {
-    positionTooltip(target, step.position);
-  } else {
-    centerTooltip();
-  }
+  // Wait for DOM layout then position
+  requestAnimationFrame(() => {
+    if (target) {
+      positionTooltip(target, step.position);
+    } else {
+      centerTooltip();
+    }
+  });
 
-  // Bind tooltip buttons
   _tooltip.querySelector('[data-action="prev"]')?.addEventListener('click', () => showStep(_current - 1));
   _tooltip.querySelector('[data-action="next"]')?.addEventListener('click', () => {
     if (_current === STEPS.length - 1) teardown();
@@ -175,7 +163,6 @@ function showStep(index) {
   });
   _tooltip.querySelector('.onboarding-tooltip__close')?.addEventListener('click', teardown);
 
-  // Scroll target into view smoothly
   if (target) {
     target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
   }
@@ -192,45 +179,121 @@ function positionSpotlight(target) {
 
 function positionTooltip(target, position) {
   const rect = target.getBoundingClientRect();
-  const tooltipRect = _tooltip.getBoundingClientRect();
-  const margin = 16;
-  let top, left;
-
-  // Default sizes for first render estimate
-  const tw = tooltipRect.width || 320;
-  const th = tooltipRect.height || 180;
-
-  switch (position) {
-    case 'right':
-      left = rect.right + margin;
-      top = rect.top + rect.height / 2 - th / 2;
-      break;
-    case 'left':
-      left = rect.left - tw - margin;
-      top = rect.top + rect.height / 2 - th / 2;
-      break;
-    case 'bottom':
-      left = rect.left + rect.width / 2 - tw / 2;
-      top = rect.bottom + margin;
-      break;
-    case 'top':
-      left = rect.left + rect.width / 2 - tw / 2;
-      top = rect.top - th - margin;
-      break;
-    default:
-      centerTooltip();
-      return;
-  }
-
-  // Clamp to viewport
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  left = Math.max(margin, Math.min(left, vw - tw - margin));
-  top = Math.max(margin, Math.min(top, vh - th - margin));
+  const isMobile = vw < MOBILE_BREAKPOINT;
+
+  // On mobile: always use centered or bottom layout to avoid overflow
+  if (isMobile) {
+    // If target is the sidebar which is off-screen on mobile, center
+    if (rect.width === 0 || rect.right < 0 || rect.left > vw) {
+      centerTooltip();
+      return;
+    }
+    // Otherwise place below the target, full width
+    positionTooltipMobile(rect);
+    return;
+  }
+
+  // Measure actual tooltip size
+  const tw = _tooltip.offsetWidth || TOOLTIP_WIDTH;
+  const th = _tooltip.offsetHeight || TOOLTIP_HEIGHT;
+
+  let top, left;
+
+  // Try requested position
+  const placements = [position, invertPosition(position), 'bottom', 'top', 'center'];
+  let chosen = null;
+
+  for (const p of placements) {
+    if (p === 'center') { chosen = p; break; }
+    const pos = computePosition(rect, p, tw, th, MARGIN);
+    if (fitsInViewport(pos, tw, th, MARGIN)) {
+      chosen = p;
+      top = pos.top;
+      left = pos.left;
+      break;
+    }
+  }
+
+  if (chosen === 'center') {
+    centerTooltip();
+    return;
+  }
 
   _tooltip.style.left = `${left}px`;
   _tooltip.style.top = `${top}px`;
+  _tooltip.style.transform = 'none';
   _tooltip.classList.remove('is-centered');
+}
+
+function positionTooltipMobile(rect) {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const tw = Math.min(vw - MARGIN * 2, TOOLTIP_WIDTH);
+  _tooltip.style.width = `${tw}px`;
+
+  // Try below target first
+  let top = rect.bottom + MARGIN;
+  let left = MARGIN;
+
+  const th = _tooltip.offsetHeight || TOOLTIP_HEIGHT;
+
+  // If doesn't fit below, try above
+  if (top + th + MARGIN > vh && rect.top - th - MARGIN > 0) {
+    top = rect.top - th - MARGIN;
+  }
+
+  // Clamp
+  top = Math.max(MARGIN, Math.min(top, vh - th - MARGIN));
+
+  _tooltip.style.left = `${left}px`;
+  _tooltip.style.top = `${top}px`;
+  _tooltip.style.transform = 'none';
+  _tooltip.classList.remove('is-centered');
+}
+
+function computePosition(targetRect, position, tw, th, margin) {
+  switch (position) {
+    case 'right':
+      return {
+        left: targetRect.right + margin,
+        top: targetRect.top + targetRect.height / 2 - th / 2,
+      };
+    case 'left':
+      return {
+        left: targetRect.left - tw - margin,
+        top: targetRect.top + targetRect.height / 2 - th / 2,
+      };
+    case 'bottom':
+      return {
+        left: targetRect.left + targetRect.width / 2 - tw / 2,
+        top: targetRect.bottom + margin,
+      };
+    case 'top':
+      return {
+        left: targetRect.left + targetRect.width / 2 - tw / 2,
+        top: targetRect.top - th - margin,
+      };
+    default:
+      return { left: 0, top: 0 };
+  }
+}
+
+function fitsInViewport(pos, tw, th, margin) {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  return (
+    pos.left >= margin &&
+    pos.left + tw <= vw - margin &&
+    pos.top >= margin &&
+    pos.top + th <= vh - margin
+  );
+}
+
+function invertPosition(pos) {
+  const map = { right: 'left', left: 'right', bottom: 'top', top: 'bottom', center: 'center' };
+  return map[pos] || 'center';
 }
 
 function centerTooltip() {

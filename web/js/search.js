@@ -311,9 +311,48 @@ function selectResult(result) {
     input.value = a.display_name.split(',')[0];
     document.getElementById('search-container')?.classList.add('has-value');
 
-    flyTo(a.lon, a.lat, 16);
-    showAddressOnMap(a.lon, a.lat, a.display_name);
+    const nearest = findNearestFerias(a.lon, a.lat, 3);
+    flyTo(a.lon, a.lat, 15);
+    showAddressOnMap(a.lon, a.lat, a.display_name, nearest);
   }
+}
+
+/**
+ * Find the N nearest ferias to a point using Haversine distance.
+ * @param {number} lng
+ * @param {number} lat
+ * @param {number} count
+ * @returns {{feature: Object, distance: number}[]}
+ */
+function findNearestFerias(lng, lat, count) {
+  const features = getAllFeatures();
+  const scored = features.map(f => {
+    const [flng, flat] = f.geometry.coordinates;
+    const dist = haversineDistance(lat, lng, flat, flng);
+    return { feature: f, distance: dist };
+  });
+
+  scored.sort((a, b) => a.distance - b.distance);
+  return scored.slice(0, count);
+}
+
+/**
+ * Haversine distance in meters between two lat/lon points.
+ */
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371000; // Earth radius in meters
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function toRad(deg) {
+  return deg * (Math.PI / 180);
 }
 
 function closeResults() {
