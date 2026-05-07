@@ -32,10 +32,19 @@ const STEPS = [
     position: 'left',
   },
   {
-    target: '#btn-stats',
+    target: '#stats-panel',
     title: 'Estadísticas',
-    text: 'Abre el panel de estadísticas para ver heatmaps por región y día, ranking de comunas y distribución nacional.',
-    position: 'bottom',
+    text: 'Panel de estadísticas con heatmaps por región y día, ranking de comunas y distribución nacional. Haz clic en cualquier gráfico para filtrar el mapa.',
+    position: 'left',
+    onBeforeShow: () => {
+      // Auto-open stats panel so the spotlight is visible
+      const panel = document.getElementById('stats-panel');
+      const btn = document.getElementById('btn-stats');
+      if (panel && !panel.classList.contains('is-open')) {
+        panel.classList.add('is-open');
+        btn?.classList.add('is-active');
+      }
+    },
   },
   {
     target: '#btn-geolocate',
@@ -114,12 +123,27 @@ function teardown() {
     _spotlight = null;
     _tooltip = null;
   }
+  // Close stats panel if it was opened by the tour
+  const panel = document.getElementById('stats-panel');
+  const btn = document.getElementById('btn-stats');
+  if (panel && panel.classList.contains('is-open')) {
+    panel.classList.remove('is-open');
+    btn?.classList.remove('is-active');
+  }
   localStorage.setItem(STORAGE_KEY, 'true');
 }
 
-function showStep(index) {
+async function showStep(index) {
   _current = index;
   const step = STEPS[index];
+
+  // Run pre-step hook (e.g. open a panel)
+  if (step.onBeforeShow) {
+    step.onBeforeShow();
+    // Allow CSS transition to settle (stats panel takes ~400ms)
+    await new Promise(r => setTimeout(r, 350));
+  }
+
   const target = step.target ? document.querySelector(step.target) : null;
 
   if (target) {
