@@ -20,6 +20,8 @@ const _filters = {
   comuna: '',
   dias: [],       // active day filters (empty = all)
   searchText: '',
+  puestosMin: 0,
+  puestosMax: 0,
 };
 
 // Registered callbacks for filter changes
@@ -164,6 +166,8 @@ export function clearFilters() {
   _filters.comuna = '';
   _filters.dias = [];
   _filters.searchText = '';
+  _filters.puestosMin = 0;
+  _filters.puestosMax = 0;
   _notifyListeners();
 }
 
@@ -201,6 +205,17 @@ export function getFilteredFeatures() {
         `${p.nombre} ${p.comuna} ${p.region} ${p.direccion} ${p.calle_principal}`
       );
       return haystack.includes(q);
+    });
+  }
+
+  // Puestos range filter
+  if (_filters.puestosMin > 0 || _filters.puestosMax > 0) {
+    features = features.filter(f => {
+      const p = f.properties.num_puestos;
+      if (p == null) return false;
+      if (_filters.puestosMin > 0 && p < _filters.puestosMin) return false;
+      if (_filters.puestosMax > 0 && p > _filters.puestosMax) return false;
+      return true;
     });
   }
 
@@ -261,4 +276,28 @@ export function getMaxPuestos() {
     if (p && p > max) max = p;
   }
   return max;
+}
+
+/**
+ * Get the minimum num_puestos across all features.
+ * @returns {number}
+ */
+export function getMinPuestos() {
+  let min = Infinity;
+  for (const f of _allFeatures) {
+    const p = f.properties.num_puestos;
+    if (p && p < min) min = p;
+  }
+  return min < Infinity ? min : 0;
+}
+
+/**
+ * Get puesto range stats for the slider (min, max from dataset).
+ * @returns {{min: number, max: number}}
+ */
+export function getPuestoRange() {
+  return {
+    min: getMinPuestos(),
+    max: getMaxPuestos(),
+  };
 }

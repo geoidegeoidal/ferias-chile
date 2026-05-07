@@ -188,23 +188,25 @@ function renderResults(features, query) {
 }
 
 /**
- * Highlight matching text in results.
+ * Highlight matching text in results with support for multi-word queries.
  */
 function highlightMatch(text, query) {
-  if (!text) return '';
+  if (!text || !query) return escapeHtml(text || '');
   const escaped = escapeHtml(text);
-  const q = normalize(query);
-  const n = normalize(text);
-  const idx = n.indexOf(q);
 
-  if (idx === -1) return escaped;
+  // Multi-word: highlight each word
+  const words = query.trim().split(/\s+/).filter(w => w.length > 0);
+  if (words.length === 0) return escaped;
 
-  // Find the corresponding position in the original string
-  const before = escapeHtml(text.slice(0, idx));
-  const match = escapeHtml(text.slice(idx, idx + query.length));
-  const after = escapeHtml(text.slice(idx + query.length));
-
-  return `${before}<mark>${match}</mark>${after}`;
+  // Build regex alternation: longest words first to match greedily
+  const sorted = [...words].sort((a, b) => b.length - a.length);
+  const pattern = sorted
+    .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('|');
+  
+  const regex = new RegExp(`(${pattern})`, 'gi');
+  
+  return escaped.replace(regex, (match) => `<mark>${match}</mark>`);
 }
 
 /**

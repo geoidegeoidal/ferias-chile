@@ -66,8 +66,8 @@
     "temporalCoverage": "2024"
   }
   </script>
-  <script type="module" crossorigin src="/ferias-chile/assets/main-CM9DMoop.js"></script>
-  <link rel="stylesheet" crossorigin href="/ferias-chile/assets/main-CozB-W3T.css">
+  <script type="module" crossorigin src="/ferias-chile/assets/main-IPNX8aN8.js"></script>
+  <link rel="stylesheet" crossorigin href="/ferias-chile/assets/main-COMx3iCR.css">
 </head>
 <body>
   <!-- Loading Overlay -->
@@ -203,6 +203,33 @@
               <button class="day-pill" data-day="Domingo" aria-label="Domingo">Do</button>
             </div>
           </div>
+        </div>
+
+        <!-- Filter: Rango de Puestos -->
+        <div class="sidebar__section">
+          <div class="filter-group">
+            <label class="filter-group__label" for="puestos-slider">
+              Número de puestos
+              <span class="filter-group__count" id="puestos-range-label"></span>
+            </label>
+            <div class="puestos-slider" id="puestos-slider">
+              <div class="puestos-slider__track">
+                <div class="puestos-slider__fill" id="puestos-fill"></div>
+              </div>
+              <div class="puestos-slider__handle puestos-slider__handle--min" id="puestos-handle-min" role="slider" aria-label="Puestos mínimo" tabindex="0"></div>
+              <div class="puestos-slider__handle puestos-slider__handle--max" id="puestos-handle-max" role="slider" aria-label="Puestos máximo" tabindex="0"></div>
+            </div>
+            <div class="puestos-slider__values">
+              <span class="puestos-slider__val" id="puestos-val-min">0</span>
+              <span class="puestos-slider__val" id="puestos-val-max">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Filter Badges -->
+        <div class="sidebar__section active-filters-section" id="active-filters-section" style="display:none;">
+          <span class="filter-group__label">Filtros activos</span>
+          <div class="active-filters" id="active-filters"></div>
         </div>
 
         <!-- Clear filters -->
