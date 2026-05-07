@@ -7,6 +7,7 @@ import { loadData, getGeoJSON } from './data.js';
 import { initMap } from './map.js';
 import { initFilters } from './filters.js';
 import { initSearch } from './search.js';
+import { initStats } from './stats.js';
 
 async function main() {
   const loadingOverlay = document.getElementById('loading-overlay');
@@ -23,6 +24,7 @@ async function main() {
     map.on('load', () => {
       initFilters();
       initSearch();
+      initStats();
       initMobileControls();
       initStatsToggle();
 

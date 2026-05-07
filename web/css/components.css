@@ -776,6 +776,92 @@
 
 
 /* ============================================================
+   STATS CHARTS
+   ============================================================ */
+.stats-chart {
+  padding-bottom: var(--sp-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.stats-chart:last-child {
+  border-bottom: none;
+}
+
+.stats-chart__title {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: var(--sp-3);
+  letter-spacing: var(--tracking-tight);
+}
+
+.stats-chart__svg {
+  width: 100%;
+  overflow: hidden;
+}
+
+.stats-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.heatmap-cell {
+  transition: filter var(--duration-fast) var(--ease-out);
+}
+
+.heatmap-cell:hover {
+  filter: brightness(1.25);
+}
+
+.ranking-bar {
+  transition: filter var(--duration-fast) var(--ease-out);
+}
+
+.ranking-bar:hover {
+  filter: brightness(1.15);
+}
+
+.ranking-label {
+  pointer-events: none;
+}
+
+.ranking-value {
+  pointer-events: none;
+}
+
+.treemap-cell {
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.treemap-cell:hover {
+  filter: brightness(1.15);
+}
+
+.chart-tooltip {
+  position: fixed;
+  background: var(--color-surface-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-1) var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-tooltip);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+  white-space: nowrap;
+}
+
+.chart-tooltip.is-visible {
+  opacity: 1;
+}
+
+
+/* ============================================================
    CLUSTER STYLES
    ============================================================ */
 /* Cluster colors already handled in map.js via expressions */

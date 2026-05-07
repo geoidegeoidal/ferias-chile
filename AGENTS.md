@@ -65,6 +65,7 @@ num_puestos, fuente, archivo_origen, fecha_datos
 ### Stack
 - **Bundler:** Vite 6
 - **Mapas:** MapLibre GL JS 4.7
+- **Gráficos:** D3.js (heatmap, ranking, treemap)
 - **Estilos:** CSS Vanilla con Custom Properties (Design System "Observatorio")
 - **Fuentes:** Sora (Display), DM Sans (Body), JetBrains Mono (Data)
 - **Deploy:** GitHub Pages (`docs/` folder)
@@ -82,8 +83,9 @@ web/
 │   ├── app.js              # Entry point, orquestación
 │   ├── data.js             # Carga de datos, filtros, estado
 │   ├── map.js              # MapLibre, markers, clustering, popups
-│   ├── filters.js          # UI de filtros (región, comuna, día)
-│   └── search.js           # Búsqueda fuzzy con highlighting
+│   ├── filters.js          # UI de filtros (región, comuna, día, puestos)
+│   ├── search.js           # Búsqueda fuzzy con highlighting
+│   └── stats.js            # D3.js charts (heatmap, ranking, treemap)
 ├── data/
 │   ├── ferias.json         # GeoJSON FeatureCollection (1,764 ferias)
 │   └── stats.json          # Estadísticas pre-computadas
@@ -99,8 +101,20 @@ web/
 - **Popups ricos:** Usan tokens del Design System, muestran badge abierto/cerrado, días de la semana con highlight del día actual, barra de puestos, botones a Google Maps
 - **Geolocalización mejorada:** Marcador con animación de pulso, círculo de precisión, notificaciones no-intrusivas, muestra ferias cercanas
 
-#### Fase 2: Filtros Avanzados (pendiente)
-#### Fase 3: Dashboard de Estadísticas (pendiente)
+#### Fase 2: Filtros Avanzados ✅
+- **Slider de puestos:** Dual-handle range slider para filtrar por número de puestos (min/max)
+- **Badges de filtros activos:** Muestran filtros actuales con botón individual para quitar cada uno
+- **Búsqueda fuzzy mejorada:** Multi-word highlighting, coincidencias sin acentos
+- **Filtros combinados:** region + comuna + día + búsqueda + puestos operan juntos
+- **Region centroids corregidos:** Nombres sin acentos para matchear datos reales
+
+#### Fase 3: Dashboard de Estadísticas ✅
+- **Heatmap semanal:** Región (Y) vs Día (X), color intensity = nº de ferias. Click → filtra por región + día
+- **Ranking de Comunas:** Top 10 comunas con barras horizontales animadas. Click → filtra por comuna
+- **Treemap de Regiones:** Rectángulos proporcionales al nº de ferias. Click → filtra por región
+- **Interactividad bidireccional:** Click en cualquier gráfico → setFilters() → mapa se actualiza
+- **Tooltips flotantes:** Hover muestra nombre y conteo exacto
+- **Color scale Observatorio:** Heatmap utiliza gradiente desde dark surface → cyan accent
 #### Fase 4: Pulido, PWA y Deploy (pendiente)
 
 ### Design System: Paleta "Observatorio"
@@ -167,9 +181,9 @@ playwright install chromium
 
 3. **Enriquecer datos:** Cruzar con otras fuentes (INE para población por comuna, datos de metro/metrotren para accesibilidad, etc.)
 
-4. **Frontend Fase 2:** Filtros avanzados (slider de puestos, búsqueda con highlighting, filtros combinados complejos)
+4. **Frontend Fase 2:** Filtros avanzados (slider de puestos, búsqueda con highlighting, filtros combinados complejos) ✅
 
-5. **Frontend Fase 3:** Dashboard de estadísticas con D3.js (heatmap semanal, ranking de comunas, treemap de regiones)
+5. **Frontend Fase 3:** Dashboard de estadísticas con D3.js (heatmap semanal, ranking de comunas, treemap de regiones) ✅
 
 6. **Frontend Fase 4:** PWA con Service Worker, manifest.json, cache de tiles
 

@@ -9,9 +9,9 @@
 | Fase | Descripción | Estado | Responsable |
 |---|---|---|---|
 | **Fase 0** | Cimientos, Design System y Pipeline de Datos | ✅ Completado | Antigravity (Opus 4.6) |
-| **Fase 1** | Mapa Interactivo (MapLibre) y Popups Ricos | ⏳ Pendiente | OpenCode (Kimi K2.6) |
-| **Fase 2** | Filtros Avanzados y Búsqueda Fuzzy | ⏳ Pendiente | OpenCode (DeepSeek V4) |
-| **Fase 3** | Dashboard de Estadísticas (D3.js) | ⏳ Pendiente | OpenCode (GLM 5.1) |
+| **Fase 1** | Mapa Interactivo (MapLibre) y Popups Ricos | ✅ Completado | OpenCode (Kimi K2.6) |
+| **Fase 2** | Filtros Avanzados y Búsqueda Fuzzy | ✅ Completado | OpenCode (DeepSeek V4) |
+| **Fase 3** | Dashboard de Estadísticas (D3.js) | ✅ Completado | OpenCode (GLM 5.1) |
 | **Fase 4** | Pulido, PWA y Deploy (GitHub Pages) | ⏳ Pendiente | Antigravity (Opus 4.6) |
 
 ---
@@ -54,11 +54,15 @@ Inspirada en dashboards premium como Kepler.gl o Datawheel.
 - **Search**: Implementar highlighting en los resultados de búsqueda.
 - **Slider**: Añadir filtro por rango de "Número de Puestos".
 
-### Fase 3: Dashboard de Estadísticas
+### Fase 3: Dashboard de Estadísticas ✅
 **Objetivo**: Visualizar tendencias nacionales.
 - **Componentes**: Crear `stats.js` usando D3.js.
 - **Gráficos**: Heatmap semanal (Región vs Día), Ranking de Comunas, Treemap de Regiones.
-- **Interactividad**: Al hacer click en un gráfico, el mapa debe filtrarse automáticamente.
+- **Interactividad**: Al hacer click en un gráfico, el mapa se filtra automáticamente.
+  - Heatmap cell → filtra por región + día
+  - Ranking bar → filtra por comuna
+  - Treemap cell → filtra por región
+- **Tooltips**: Hover muestra conteo exacto con tooltip flotante.
 
 ### Fase 4: Deploy y PWA
 **Objetivo**: Producción y offline.
