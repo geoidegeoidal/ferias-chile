@@ -1,15 +1,15 @@
 /**
- * search.js — Fuzzy search with keyboard navigation and result highlighting.
+ * search.js — Fuzzy search + Nominatim geocoding with keyboard navigation.
  */
 import {
   getAllFeatures,
   setFilters,
-  getFilters,
 } from './data.js';
-import { flyTo, showPopup } from './map.js';
+import { flyTo, showPopup, showAddressOnMap } from './map.js';
 
 let _activeIndex = -1;
-let _results = [];
+let _results = []; // mixed: features + nominatim addresses
+let _nominatimAbort = null;
 
 /**
  * Initialize search functionality.
@@ -29,6 +29,7 @@ export function initSearch() {
     const value = input.value.trim();
 
     container.classList.toggle('has-value', value.length > 0);
+    abortNominatim();
 
     if (value.length < 2) {
       closeResults();
@@ -36,11 +37,13 @@ export function initSearch() {
       return;
     }
 
-    debounceTimer = setTimeout(() => {
-      _results = search(value);
+    debounceTimer = setTimeout(async () => {
+      const local = searchLocal(value);
+      const nominatim = await searchNominatim(value);
+      _results = [...local, ...nominatim];
       renderResults(_results, value);
       setFilters({ searchText: value });
-    }, 200);
+    }, 250);
   });
 
   // Clear button
@@ -95,12 +98,11 @@ export function initSearch() {
   });
 }
 
-/**
- * Search features with fuzzy matching.
- * @param {string} query
- * @returns {Object[]} Top matching features
- */
-function search(query) {
+/* ============================================================
+   LOCAL SEARCH (ferias dataset)
+   ============================================================ */
+
+function searchLocal(query) {
   const q = normalize(query);
   const features = getAllFeatures();
   const scored = [];
@@ -119,16 +121,11 @@ function search(query) {
     for (const { text, weight } of fields) {
       if (!text) continue;
       const n = normalize(text);
-      
-      // Exact substring match
       if (n.includes(q)) {
-        // Higher score for start-of-string matches
         const pos = n.indexOf(q);
         const posBonus = pos === 0 ? 2 : 1;
         bestScore = Math.max(bestScore, weight * posBonus * 10);
-      }
-      // Fuzzy: all query words present
-      else {
+      } else {
         const words = q.split(/\s+/);
         const allPresent = words.every(w => n.includes(w));
         if (allPresent) {
@@ -142,21 +139,67 @@ function search(query) {
     }
   }
 
-  // Sort by score descending, limit to 12
   scored.sort((a, b) => b.score - a.score);
-  return scored.slice(0, 12).map(s => s.feature);
+  return scored.slice(0, 8).map(s => ({ type: 'feria', data: s.feature }));
 }
 
-/**
- * Render search results dropdown.
- */
-function renderResults(features, query) {
+/* ============================================================
+   NOMINATIM SEARCH (OpenStreetMap geocoding)
+   ============================================================ */
+
+async function searchNominatim(query) {
+  // Only query Nominatim for address-like queries or if no local results
+  // But we'll always show up to 3 suggestions to help discovery
+  const controller = new AbortController();
+  _nominatimAbort = controller;
+
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ', Chile')}&format=json&countrycodes=cl&limit=4&accept-language=es`;
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'FeriasChile/1.0 (https://geoidegeoidal.github.io/ferias-chile/)',
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) return [];
+    const results = await response.json();
+    return results.map(r => ({
+      type: 'address',
+      data: {
+        display_name: r.display_name,
+        lat: parseFloat(r.lat),
+        lon: parseFloat(r.lon),
+        icon: r.icon,
+      },
+    }));
+  } catch (err) {
+    if (err.name !== 'AbortError') console.warn('[Nominatim] Error:', err);
+    return [];
+  } finally {
+    _nominatimAbort = null;
+  }
+}
+
+function abortNominatim() {
+  if (_nominatimAbort) {
+    _nominatimAbort.abort();
+    _nominatimAbort = null;
+  }
+}
+
+/* ============================================================
+   RENDER RESULTS
+   ============================================================ */
+
+function renderResults(results, query) {
   const resultsEl = document.getElementById('search-results');
   if (!resultsEl) return;
 
   _activeIndex = -1;
 
-  if (features.length === 0) {
+  if (results.length === 0) {
     resultsEl.innerHTML = `
       <div class="search-result-item" style="color: var(--text-tertiary); cursor: default;">
         No se encontraron resultados para "${escapeHtml(query)}"
@@ -166,52 +209,77 @@ function renderResults(features, query) {
     return;
   }
 
-  resultsEl.innerHTML = features.map((f, i) => {
-    const p = f.properties;
-    return `
-      <div class="search-result-item" data-index="${i}" role="option">
-        <div class="search-result-item__name">${highlightMatch(p.nombre, query)}</div>
-        <div class="search-result-item__meta">${highlightMatch(p.comuna, query)}, ${p.region} · ${p.dias_texto || ''}</div>
-      </div>
-    `;
-  }).join('');
+  // Split sections
+  const ferias = results.filter(r => r.type === 'feria');
+  const addresses = results.filter(r => r.type === 'address');
+
+  let html = '';
+
+  if (ferias.length > 0) {
+    html += ferias.map((r, i) => {
+      const p = r.data.properties;
+      const globalIdx = results.indexOf(r);
+      return `
+        <div class="search-result-item" data-index="${globalIdx}" role="option">
+          <div class="search-result-item__icon">🏪</div>
+          <div class="search-result-item__body">
+            <div class="search-result-item__name">${highlightMatch(p.nombre, query)}</div>
+            <div class="search-result-item__meta">${highlightMatch(p.comuna, query)}, ${p.region} · ${p.dias_texto || ''}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  if (addresses.length > 0) {
+    if (ferias.length > 0) {
+      html += `<div class="search-result-divider"><span>Direcciones</span></div>`;
+    }
+    html += addresses.map((r, i) => {
+      const a = r.data;
+      const globalIdx = results.indexOf(r);
+      const shortName = a.display_name.split(',')[0];
+      const rest = a.display_name.split(',').slice(1, 3).join(', ');
+      return `
+        <div class="search-result-item search-result-item--address" data-index="${globalIdx}" role="option">
+          <div class="search-result-item__icon">📍</div>
+          <div class="search-result-item__body">
+            <div class="search-result-item__name">${highlightMatch(shortName, query)}</div>
+            <div class="search-result-item__meta">${escapeHtml(rest)}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  resultsEl.innerHTML = html;
 
   // Click handlers
   resultsEl.querySelectorAll('.search-result-item[data-index]').forEach(el => {
     el.addEventListener('click', () => {
       const idx = parseInt(el.dataset.index);
-      if (features[idx]) selectResult(features[idx]);
+      if (results[idx]) selectResult(results[idx]);
     });
   });
 
   resultsEl.classList.add('is-open');
 }
 
-/**
- * Highlight matching text in results with support for multi-word queries.
- */
 function highlightMatch(text, query) {
   if (!text || !query) return escapeHtml(text || '');
   const escaped = escapeHtml(text);
-
-  // Multi-word: highlight each word
   const words = query.trim().split(/\s+/).filter(w => w.length > 0);
   if (words.length === 0) return escaped;
 
-  // Build regex alternation: longest words first to match greedily
   const sorted = [...words].sort((a, b) => b.length - a.length);
   const pattern = sorted
     .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
     .join('|');
-  
+
   const regex = new RegExp(`(${pattern})`, 'gi');
-  
   return escaped.replace(regex, (match) => `<mark>${match}</mark>`);
 }
 
-/**
- * Highlight active result (keyboard nav).
- */
 function highlightResult() {
   const resultsEl = document.getElementById('search-results');
   if (!resultsEl) return;
@@ -224,40 +292,39 @@ function highlightResult() {
   });
 }
 
-/**
- * Select a search result.
- */
-function selectResult(feature) {
+function selectResult(result) {
   closeResults();
 
   const input = document.getElementById('search-input');
-  if (input) {
+  if (!input) return;
+
+  if (result.type === 'feria') {
+    const feature = result.data;
     input.value = feature.properties.nombre;
     document.getElementById('search-container')?.classList.add('has-value');
+
+    const coords = feature.geometry.coordinates;
+    flyTo(coords[0], coords[1], 16);
+    setTimeout(() => showPopup(feature), 1300);
+  } else if (result.type === 'address') {
+    const a = result.data;
+    input.value = a.display_name.split(',')[0];
+    document.getElementById('search-container')?.classList.add('has-value');
+
+    flyTo(a.lon, a.lat, 16);
+    showAddressOnMap(a.lon, a.lat, a.display_name);
   }
-
-  // Fly to the feature
-  const coords = feature.geometry.coordinates;
-  flyTo(coords[0], coords[1], 16);
-
-  // Show popup after fly animation
-  setTimeout(() => {
-    showPopup(feature);
-  }, 1300);
 }
 
-/** Close search results dropdown */
 function closeResults() {
   document.getElementById('search-results')?.classList.remove('is-open');
   _activeIndex = -1;
 }
 
-/** Normalize for search */
 function normalize(str) {
   return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
-/** Escape HTML */
 function escapeHtml(str) {
   if (!str) return '';
   const div = document.createElement('div');

@@ -690,3 +690,43 @@ popupStyle.textContent = `
   }
 `;
 document.head.appendChild(popupStyle);
+
+// ---- Address marker helpers (used by search.js for Nominatim results) ----
+
+let _addressPopup = null;
+let _addressMarker = null;
+
+export function showAddressOnMap(lng, lat, displayName) {
+  if (!map) return;
+
+  if (_addressPopup) _addressPopup.remove();
+  if (_addressMarker) _addressMarker.remove();
+
+  const el = document.createElement('div');
+  el.className = 'address-marker';
+  el.innerHTML = '📍';
+  el.style.cssText = 'font-size: 24px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); cursor: default;';
+
+  _addressMarker = new maplibregl.Marker({ element: el })
+    .setLngLat([lng, lat])
+    .addTo(map);
+
+  _addressPopup = new maplibregl.Popup({
+    closeButton: true,
+    closeOnClick: true,
+    maxWidth: '320px',
+    className: 'ferias-popup',
+  })
+    .setLngLat([lng, lat])
+    .setHTML(`
+      <div class="popup">
+        <div class="popup__header">
+          <div class="popup__name">Dirección</div>
+        </div>
+        <div class="popup__section">
+          <div style="font-size: var(--text-sm); color: var(--text-secondary);">${escapeHtml(displayName)}</div>
+        </div>
+      </div>
+    `)
+    .addTo(map);
+}
