@@ -1,8 +1,54 @@
-# Ferias Libres de Chile
+<p align="center">
+  <img src="web/public/icons/favicon.svg" width="80" height="80" alt="Un puesto de feria en tonos turquesa y crema">
+</p>
 
-Mapa interactivo para encontrar ferias libres por región, comuna, día y número de puestos. El conjunto de datos incluido contiene **1.764 ferias únicas, 284 comunas y las 16 regiones de Chile**, a partir de información publicada por ODEPA.
+<h1 align="center">Ferias Libres de Chile</h1>
 
-**[Abrir el mapa](https://geoidegeoidal.github.io/ferias-chile/)** · [Fuente ODEPA](https://bibliotecadigital.odepa.gob.cl/) · [Repositorio](https://github.com/geoidegeoidal/ferias-chile)
+<p align="center">
+  <strong>Tu próxima feria, en el mapa.</strong><br>
+  Explora tu comuna, elige un día y encuentra dónde ir a comprar.
+</p>
+
+<p align="center">
+  <a href="https://geoidegeoidal.github.io/ferias-chile/"><strong>Abrir el mapa →</strong></a>
+  · <a href="#ejecutar-en-local">Ejecutar en local</a>
+  · <a href="#actualizar-los-datos">Datos y fuentes</a>
+</p>
+
+<p align="center">
+  <strong>1.764 ferias</strong> · <strong>284 comunas</strong> · <strong>16 regiones</strong><br>
+  <sub>Cobertura del conjunto de datos incluido, a partir de información publicada por ODEPA.</sub>
+</p>
+
+<a href="https://geoidegeoidal.github.io/ferias-chile/">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/mapa-oscuro.jpg">
+    <img src="assets/readme/mapa-claro.jpg" width="1440" alt="Visor de ferias con filtros por región, comuna, día y puestos; el mapa muestra las 30 ferias de la comuna de Santiago agrupadas por cercanía">
+  </picture>
+</a>
+
+<p align="center"><sub>Captura real del visor en Santiago. La portada acompaña el tema claro u oscuro de tu sistema.</sub></p>
+
+## Del barrio al puesto
+
+Elige una región y una comuna, combina los filtros y abre una feria para consultar su dirección, días y horario. Puedes pasar de una vista de todo Chile al detalle de una calle, o buscar directamente por nombre o dirección.
+
+<table>
+  <tr>
+    <td width="65%" valign="top">
+      <h3>Una mirada al país</h3>
+      <a href="assets/readme/estadisticas.jpg"><img src="assets/readme/estadisticas.jpg" alt="Panel de estadísticas con ferias por región y día, ranking de comunas y distribución regional, junto al mapa claro"></a>
+      <p>Compara la actividad de las 16 regiones, revisa los días con más ferias y explora el ranking de comunas. Los gráficos también sirven para filtrar el mapa.</p>
+      <p><strong>Dos formas de recorrerlo:</strong> mapa oscuro para destacar los puntos y mapa claro para leer el entorno. Al cambiar de estilo se conservan los filtros.</p>
+      <p><a href="assets/readme/mapa-oscuro.jpg">Ver mapa oscuro</a> · <a href="assets/readme/mapa-claro.jpg">Ver mapa claro</a></p>
+    </td>
+    <td width="35%" valign="top">
+      <h3>La feria, en el bolsillo</h3>
+      <a href="assets/readme/vista-movil.jpg"><img src="assets/readme/vista-movil.jpg" width="280" alt="Vista móvil de la ficha de la feria Santiago, con dirección, días de funcionamiento, horario, número de puestos y enlaces para llegar"></a>
+      <p>Consulta la ficha desde el celular y abre las indicaciones para llegar en Google Maps.</p>
+    </td>
+  </tr>
+</table>
 
 ## Qué permite hacer
 
@@ -72,6 +118,7 @@ Cuando cambies el app shell o el proveedor cartográfico, actualiza las versione
 
 ```text
 ferias-chile/
+├── assets/readme/              # Capturas reales para esta documentación
 ├── data/                       # Datos normalizados y fuentes descargadas
 ├── scripts/                    # Extracción, normalización y generación del visor
 ├── web/
@@ -103,7 +150,7 @@ python -X utf8 scripts/build_web_data.py
 
 El último comando escribe `ferias.json` y `stats.json` en **`web/public/data/`**, que Vite copia al sitio compilado. Revisa conteos, coordenadas y cambios de esquema antes de publicar; después vuelve a ejecutar las pruebas y la compilación.
 
-La fuente principal es `Ferias_Pais_PowerBI.xlsx` de la Biblioteca Digital de ODEPA. Los scripts de Sercotec y PowerBI son exploratorios y no forman parte del flujo necesario para ejecutar el visor.
+La fuente principal es `Ferias_Pais_PowerBI.xlsx` de la [Biblioteca Digital de ODEPA](https://bibliotecadigital.odepa.gob.cl/). Los scripts de Sercotec y PowerBI son exploratorios y no forman parte del flujo necesario para ejecutar el visor.
 
 ## Publicar
 

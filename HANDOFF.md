@@ -1,5 +1,15 @@
 # Handoff
 
+## 2026-10-12 — README visual
+
+- **Objetivo:** dar al README una presentación cuidada con imágenes reales del proyecto.
+- **Completado:** portada con logo, acceso al visor y cobertura; capturas de mapas claro/oscuro, estadísticas y ficha móvil; galería con textos alternativos y enlaces para ampliar.
+- **Decisiones:** usar el SVG existente y capturas JPEG en `assets/readme/`; la portada usa `picture` para acompañar el tema del sistema. Los recursos de documentación no se incluyen en el build del sitio.
+- **Verificación:** revisión visual de las capturas y comprobación de rutas locales. No se modifica código de la aplicación.
+- **Bloqueos:** ninguno.
+- **Próximos pasos:** mantener las capturas al cambiar la interfaz.
+- **Commit de esta sesión:** `docs: add visual README with maps, stats and mobile screenshots`; base `c3691d2`.
+
 ## 2026-10-12 — Commit y publicación solicitados
 
 - **Objetivo:** guardar los cambios y subirlos a `origin/master` para actualizar GitHub Pages.

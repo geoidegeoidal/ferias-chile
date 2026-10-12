@@ -228,5 +228,6 @@ playwright install chromium
 - Favicon: fuente SVG en `web/public/icons/favicon.svg`, PNG/PWA derivados. En HTML usar `%BASE_URL%icons/...` para servir los iconos de `public/` y evitar empaquetar imágenes duplicadas de `web/icons/`.
 - Fichas del mapa: limitar tanto el popup MapLibre como el ancho mínimo de su contenido al viewport para funcionar desde 320 px; permitir scroll en móviles bajos y mantener la ficha encima de los controles para acceder al cierre.
 - GitHub Actions debe ejecutar `npm test` antes de compilar/publicar.
+- README: guardar capturas reales en `assets/readme/`, fuera de `docs/` (build ignorado) y `web/public/` (recursos del sitio). Conservar atribución cartográfica, textos alternativos y enlaces relativos; actualizar las capturas cuando cambie la interfaz.
 - `.btn--icon` centra su contenido con flex, tanto en enlaces como en botones; no depender del centrado nativo de `<button>`.
 - Verificación: `cd web; npm test` (runner Node con módulos VM) y `npm run build`. Las pruebas de módulos no verifican GPS real ni cobertura completa offline.
