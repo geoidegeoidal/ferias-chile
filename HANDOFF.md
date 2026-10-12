@@ -3,11 +3,11 @@
 ## 2026-10-12 — Commit y publicación solicitados
 
 - **Objetivo:** guardar los cambios y subirlos a `origin/master` para actualizar GitHub Pages.
-- **Completado:** revisión del estado local/remoto (sin divergencia), 4 regresiones pasan y compilación de producción validada en la sesión anterior.
+- **Completado:** commit `4b60db4` y push a `origin/master`; 4 regresiones pasan. GitHub Actions ejecutó pruebas, build y despliegue con éxito (run `38199324760`). El sitio público responde HTTP 200 y sirve el JS con OpenFreeMap, el favicon SVG nuevo y el service worker `ferias-v7`.
 - **Decisiones:** publicar directamente en `master`, según autorización del usuario; el workflow ejecuta pruebas y build antes de desplegar.
-- **Bloqueos:** ninguno al preparar el commit; la publicación depende de que termine GitHub Actions.
-- **Próximos pasos:** verificar el push, el resultado del workflow y el sitio público.
-- **Commit de esta sesión:** `fix: restore basemap and polish viewer, icons and docs`; base `fe734b8`.
+- **Bloqueos:** ninguno.
+- **Próximos pasos:** ninguno para la publicación solicitada. GPS real y offline completo siguen fuera de lo verificado.
+- **Commit de implementación:** `4b60db4` — `fix: restore basemap and polish viewer, icons and docs`; base `fe734b8`. La verificación posterior se registra en el commit de documentación que contiene esta entrada.
 
 ## 2026-10-12 — Recuperar basemap, validar el sitio y mejorar documentación/iconos
 
