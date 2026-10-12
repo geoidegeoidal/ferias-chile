@@ -39,15 +39,21 @@ export function initSearch() {
 
     debounceTimer = setTimeout(async () => {
       const local = searchLocal(value);
+      _results = local;
+      renderResults(local, value);
+      setFilters({ searchText: value });
       const nominatim = await searchNominatim(value);
+      if (input.value.trim() !== value) return;
       _results = [...local, ...nominatim];
       renderResults(_results, value);
-      setFilters({ searchText: value });
     }, 250);
   });
 
   // Clear button
   clearBtn?.addEventListener('click', () => {
+    clearTimeout(debounceTimer);
+    abortNominatim();
+    _results = [];
     input.value = '';
     container.classList.remove('has-value');
     closeResults();
@@ -178,7 +184,7 @@ async function searchNominatim(query) {
     if (err.name !== 'AbortError') console.warn('[Nominatim] Error:', err);
     return [];
   } finally {
-    _nominatimAbort = null;
+    if (_nominatimAbort === controller) _nominatimAbort = null;
   }
 }
 

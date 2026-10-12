@@ -12,6 +12,7 @@
     "header  header"
     "sidebar map";
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
   overflow: hidden;
   background: var(--color-bg-deep);
@@ -380,6 +381,46 @@
 
 /* Mobile */
 @media (max-width: 768px) {
+  :root {
+    --header-height: 112px;
+  }
+
+  .app-header {
+    flex-wrap: wrap;
+    align-content: center;
+    gap: var(--sp-2);
+  }
+
+  .app-header__brand {
+    gap: var(--sp-2);
+  }
+
+  .app-header__logo {
+    display: none;
+  }
+
+  .app-header .btn--icon,
+  .app-header .btn--help,
+  .map-control-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .day-pill {
+    width: 44px;
+    height: 44px;
+  }
+
+  .search-input,
+  .filter-select,
+  #clear-filters {
+    min-height: 44px;
+  }
+
+  .search-input {
+    font-size: 16px;
+  }
+
   #app {
     grid-template-columns: 1fr;
     grid-template-rows: var(--header-height) 1fr;
@@ -406,10 +447,13 @@
 
   .stats-panel {
     width: 100%;
-    top: var(--header-height);
+    top: 0;
   }
 
   .search-container {
+    order: 1;
+    flex-basis: 100%;
+    min-width: 0;
     max-width: none;
   }
 

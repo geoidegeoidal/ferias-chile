@@ -20,6 +20,11 @@ let map = null;
 /** @type {boolean} */
 let isDark = true;
 
+const BASEMAP_STYLES = {
+  dark: 'https://tiles.openfreemap.org/styles/dark',
+  light: 'https://tiles.openfreemap.org/styles/positron',
+};
+
 /** @type {maplibregl.Popup | null} */
 let activePopup = null;
 
@@ -43,7 +48,7 @@ const ALL_DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado
 export function initMap(geojson) {
   map = new maplibregl.Map({
     container: 'map',
-    style: buildDarkStyle(),
+    style: BASEMAP_STYLES.dark,
     center: CHILE_CENTER,
     zoom: INITIAL_ZOOM,
     minZoom: 3,
@@ -54,6 +59,12 @@ export function initMap(geojson) {
 
   // Attribution (bottom-left, compact)
   map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left');
+
+  // The Dark style uses a legacy name for the circle included in its sprite.
+  map.on('styleimagemissing', ({ id }) => {
+    const image = id === 'circle-11' && map.getImage('circle_11');
+    if (image) map.addImage(id, image.data, { pixelRatio: image.pixelRatio, sdf: image.sdf });
+  });
 
   map.on('load', () => {
     addDataLayers(geojson);
@@ -75,63 +86,6 @@ export function initMap(geojson) {
 
 /** Get the map instance */
 export function getMap() { return map; }
-
-/**
- * Build a dark map style matching the Observatorio palette.
- */
-function buildDarkStyle() {
-  return {
-    version: 8,
-    name: 'Observatorio',
-    sources: {
-      'carto-dark': {
-        type: 'raster',
-        tiles: [
-          'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-          'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-          'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-        ],
-        tileSize: 256,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        maxzoom: 19,
-      },
-      'carto-light': {
-        type: 'raster',
-        tiles: [
-          'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
-          'https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
-          'https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
-        ],
-        tileSize: 256,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        maxzoom: 19,
-      },
-    },
-    layers: [
-      {
-        id: 'carto-light-layer',
-        type: 'raster',
-        source: 'carto-light',
-        layout: { visibility: 'none' },
-        paint: {
-          'raster-brightness-max': 1.0,
-          'raster-saturation': -0.1,
-        },
-      },
-      {
-        id: 'carto-dark-layer',
-        type: 'raster',
-        source: 'carto-dark',
-        layout: { visibility: 'visible' },
-        paint: {
-          'raster-brightness-max': 0.85,
-          'raster-saturation': -0.3,
-        },
-      },
-    ],
-    glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
-  };
-}
 
 /**
  * Add GeoJSON source and cluster/point layers.
@@ -385,7 +339,7 @@ export function showPopup(feature) {
   activePopup = new maplibregl.Popup({
     closeButton: true,
     closeOnClick: true,
-    maxWidth: '360px',
+    maxWidth: 'min(360px, calc(100vw - 32px))',
     className: 'ferias-popup',
   })
     .setLngLat(coords)
@@ -472,19 +426,22 @@ export function fitToFeatures(features) {
 }
 
 /**
- * Toggle between dark and light map basemap.
+ * Toggle OpenFreeMap styles while preserving the current data overlays.
  */
 export function toggleMapStyle() {
   if (!map) return;
   isDark = !isDark;
 
-  if (isDark) {
-    map.setLayoutProperty('carto-dark-layer', 'visibility', 'visible');
-    map.setLayoutProperty('carto-light-layer', 'visibility', 'none');
-  } else {
-    map.setLayoutProperty('carto-dark-layer', 'visibility', 'none');
-    map.setLayoutProperty('carto-light-layer', 'visibility', 'visible');
-  }
+  map.setStyle(BASEMAP_STYLES[isDark ? 'dark' : 'light'], {
+    transformStyle: (previous, next) => ({
+      ...next,
+      sources: { ...previous.sources, ...next.sources },
+      // Keep filtered ferias and geolocation above the new basemap.
+      layers: [...next.layers, ...previous.layers.filter(
+        (layer) => previous.sources[layer.source]?.type === 'geojson'
+      )],
+    }),
+  });
 
   // Update button icon
   const btn = document.getElementById('btn-theme-toggle');
@@ -665,6 +622,7 @@ function escapeHtml(str) {
 // Custom popup CSS (injected once)
 const popupStyle = document.createElement('style');
 popupStyle.textContent = `
+  .ferias-popup { z-index: 2; }
   .ferias-popup .maplibregl-popup-content {
     background: var(--color-surface-2, hsl(220, 16%, 16%));
     border: 1px solid var(--border-default, hsla(220, 20%, 50%, 0.14));
@@ -687,6 +645,12 @@ popupStyle.textContent = `
   }
   .ferias-popup .maplibregl-popup-tip {
     border-top-color: var(--color-surface-2, hsl(220, 16%, 16%));
+  }
+  @media (max-width: 768px) {
+    .ferias-popup .maplibregl-popup-content {
+      max-height: calc((100dvh - 112px) / 2 - 32px);
+      overflow-y: auto;
+    }
   }
 `;
 document.head.appendChild(popupStyle);
@@ -742,7 +706,7 @@ export function showAddressOnMap(lng, lat, displayName, nearestFerias = []) {
   _addressPopup = new maplibregl.Popup({
     closeButton: true,
     closeOnClick: false,
-    maxWidth: '340px',
+    maxWidth: 'min(340px, calc(100vw - 32px))',
     className: 'ferias-popup',
   })
     .setLngLat([lng, lat])

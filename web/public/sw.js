@@ -8,9 +8,9 @@
  *  - Fonts → Cache-first, long-lived.
  */
 
-const CACHE_VERSION = 'ferias-v1';
+const CACHE_VERSION = 'ferias-v7';
 const DATA_CACHE   = 'ferias-data-v1';
-const TILE_CACHE   = 'ferias-tiles-v1';
+const TILE_CACHE   = 'ferias-tiles-v2';
 const FONT_CACHE   = 'ferias-fonts-v1';
 const MAX_TILES    = 500;       // keep tile cache bounded
 

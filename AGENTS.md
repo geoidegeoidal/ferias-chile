@@ -6,8 +6,8 @@ Construir una mejor experiencia (UX/UI) para consultar ferias libres en Chile, e
 
 ## Repositorio
 
-- **GitHub:** https://github.com/geoidegeoidal/Ferias_Libre_Upgrade
-- **Local:** `C:\JULLOAR-CODE\sp\ferias_libres`
+- **GitHub:** https://github.com/geoidegeoidal/ferias-chile
+- **Local:** trabajar desde la raíz del clon actual; no depender de rutas de otras máquinas.
 - **Stack Backend:** Python 3.14 + pandas + openpyxl + requests + playwright
 - **Stack Frontend:** Vite + Vanilla JS + MapLibre GL JS + CSS Custom Properties
 
@@ -215,3 +215,18 @@ playwright install chromium
 - **Bounding box Chile:** lat [-56, -17], lon [-76, -66] para validar coordenadas.
 - **Git:** El `.gitignore` excluye archivos `.xlsx` y `.html` de data/. Los CSV y JSON finales sí se versionan.
 - **CSP:** El `index.html` tiene un Content-Security-Policy estricto. Al añadir nuevos recursos externos, actualizar las directivas `script-src`, `style-src`, `img-src`, `connect-src` según corresponda.
+
+## Decisiones y problemas resueltos — 2026-10-11
+
+- Basemap: OpenFreeMap Dark/Positron, sin API key. Conservar fuentes y capas GeoJSON mediante `setStyle(..., { transformStyle })`: incluye ferias filtradas y precisión de geolocalización. El sprite Dark llama `circle_11` al icono que el estilo pide como `circle-11`; se reutiliza el icono existente.
+- PWA: registrar el service worker solo en producción. Cache-first en desarrollo puede ocultar cambios en HTML/JS. Incrementar el cache del app shell al actualizarlo; tiles offline disponibles solo para recursos previamente visitados.
+- Paneles: usar `inert` cuando estén cerrados, sincronizar `aria-expanded` y devolver foco al cerrar con Escape. La sidebar permanece activa en escritorio.
+- Puestos: `puestosMax === 0` significa sin límite; las flechas deben operar desde el máximo real. Sincronizar valores visibles y ARIA desde `updatePuestosSlider`.
+- Búsqueda: mostrar resultados locales antes de esperar Nominatim, abortar al limpiar y descartar respuestas para un texto que ya cambió.
+- El identificador de región presente en los datos es `Ñuble`, no `Nuble`; usarlo en centroides y gráficos para no omitir esa región.
+- `build_web_data.py` debe escribir en `web/public/data/`. `web/data/` no es la carpeta que copia Vite a producción.
+- Favicon: fuente SVG en `web/public/icons/favicon.svg`, PNG/PWA derivados. En HTML usar `%BASE_URL%icons/...` para servir los iconos de `public/` y evitar empaquetar imágenes duplicadas de `web/icons/`.
+- Fichas del mapa: limitar tanto el popup MapLibre como el ancho mínimo de su contenido al viewport para funcionar desde 320 px; permitir scroll en móviles bajos y mantener la ficha encima de los controles para acceder al cierre.
+- GitHub Actions debe ejecutar `npm test` antes de compilar/publicar.
+- `.btn--icon` centra su contenido con flex, tanto en enlaces como en botones; no depender del centrado nativo de `<button>`.
+- Verificación: `cd web; npm test` (runner Node con módulos VM) y `npm run build`. Las pruebas de módulos no verifican GPS real ni cobertura completa offline.

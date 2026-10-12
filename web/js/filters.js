@@ -26,7 +26,7 @@ const REGION_CENTROIDS = {
   'Metropolitana de Santiago': [-70.65, -33.45],
   "Libertador General Bernardo O'Higgins": [-71.0, -34.2],
   'Maule': [-71.2, -35.4],
-  'Nuble': [-72.0, -36.6],
+  'Ñuble': [-72.0, -36.6],
   'Biobio': [-72.7, -37.0],
   'La Araucania': [-72.5, -38.7],
   'Los Rios': [-72.6, -39.8],
@@ -144,37 +144,13 @@ function setupPuestosSlider() {
   const slider = document.getElementById('puestos-slider');
   const handleMin = document.getElementById('puestos-handle-min');
   const handleMax = document.getElementById('puestos-handle-max');
-  const fill = document.getElementById('puestos-fill');
-  const valMin = document.getElementById('puestos-val-min');
-  const valMax = document.getElementById('puestos-val-max');
 
   if (!slider || !handleMin || !handleMax) return;
 
   const range = getPuestoRange();
   const maxVal = range.max;
 
-  valMax.textContent = maxVal.toLocaleString('es-CL');
-
-  function updateHandles() {
-    const filters = getFilters();
-    const minPercent = maxVal > 0 ? (filters.puestosMin / maxVal) * 100 : 0;
-    const maxPercent = filters.puestosMax > 0
-      ? (filters.puestosMax / maxVal) * 100
-      : 100;
-
-    handleMin.style.left = `${minPercent}%`;
-    handleMax.style.left = `${maxPercent}%`;
-    fill.style.left = `${minPercent}%`;
-    fill.style.width = `${maxPercent - minPercent}%`;
-    valMin.textContent = filters.puestosMin.toLocaleString('es-CL');
-
-    const label = document.getElementById('puestos-range-label');
-    if (label && (filters.puestosMin > 0 || filters.puestosMax > 0)) {
-      label.textContent = `(${filters.puestosMin}–${filters.puestosMax > 0 ? filters.puestosMax : maxVal})`;
-    } else if (label) {
-      label.textContent = '';
-    }
-  }
+  const updateHandles = updatePuestosSlider;
 
   function getHandleValue(clientX) {
     const rect = slider.getBoundingClientRect();
@@ -274,7 +250,7 @@ function setupPuestosSlider() {
           const newVal = Math.max(current.puestosMin - step, range.min);
           setFilters({ puestosMin: newVal > range.min ? newVal : 0 });
         } else {
-          const newVal = Math.max(current.puestosMax - step, current.puestosMin || range.min);
+          const newVal = Math.max((current.puestosMax || maxVal) - step, current.puestosMin || range.min);
           setFilters({ puestosMax: newVal < maxVal ? newVal : 0 });
         }
         updateHandles();
@@ -284,7 +260,7 @@ function setupPuestosSlider() {
           const newVal = Math.min(current.puestosMin + step, current.puestosMax || maxVal);
           setFilters({ puestosMin: newVal > range.min ? newVal : 0 });
         } else {
-          const newVal = Math.min(current.puestosMax + step, maxVal);
+          const newVal = Math.min((current.puestosMax || maxVal) + step, maxVal);
           setFilters({ puestosMax: newVal < maxVal ? newVal : 0 });
         }
         updateHandles();
@@ -405,6 +381,13 @@ function updatePuestosSlider() {
   if (valMin) valMin.textContent = filters.puestosMin.toLocaleString('es-CL');
   if (valMax) valMax.textContent = (filters.puestosMax > 0 ? filters.puestosMax : maxVal).toLocaleString('es-CL');
 
+  handleMin.setAttribute('aria-valuemin', '0');
+  handleMin.setAttribute('aria-valuemax', String(filters.puestosMax || maxVal));
+  handleMin.setAttribute('aria-valuenow', String(filters.puestosMin));
+  handleMax.setAttribute('aria-valuemin', String(filters.puestosMin));
+  handleMax.setAttribute('aria-valuemax', String(maxVal));
+  handleMax.setAttribute('aria-valuenow', String(filters.puestosMax || maxVal));
+
   const label = document.getElementById('puestos-range-label');
   if (label && (filters.puestosMin > 0 || filters.puestosMax > 0)) {
     label.textContent = `(${filters.puestosMin}–${filters.puestosMax > 0 ? filters.puestosMax : maxVal})`;
@@ -469,6 +452,7 @@ function setupEventListeners() {
     const searchInput = document.getElementById('search-input');
     if (searchInput) {
       searchInput.value = '';
+      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
       document.getElementById('search-container')?.classList.remove('has-value');
     }
 
@@ -501,6 +485,12 @@ function updateFilterUI(filtered, filters) {
   updateHeroStats(filtered);
   // Update active filter badges
   updateActiveFilterBadges(filters);
+  updatePuestosSlider();
+  document.querySelectorAll('.day-pill').forEach((pill) => {
+    const selected = filters.dias.includes(pill.dataset.day);
+    pill.classList.toggle('is-active', selected);
+    pill.setAttribute('aria-pressed', String(selected));
+  });
 }
 
 /**

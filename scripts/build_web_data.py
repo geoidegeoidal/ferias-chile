@@ -3,8 +3,8 @@
 build_web_data.py — Genera datos optimizados para el visor web de Ferias Libres.
 
 Lee data/ferias_libres_unicas.csv y produce:
-  - web/data/ferias.json   → GeoJSON FeatureCollection para MapLibre
-  - web/data/stats.json    → Estadísticas pre-calculadas para el dashboard
+  - web/public/data/ferias.json   → GeoJSON FeatureCollection para MapLibre
+  - web/public/data/stats.json    → Estadísticas pre-calculadas para el dashboard
 
 Uso:
     python scripts/build_web_data.py
@@ -23,7 +23,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 ROOT = Path(__file__).resolve().parent.parent
 CSV_PATH = ROOT / "data" / "ferias_libres_unicas.csv"
-OUT_DIR = ROOT / "web" / "data"
+OUT_DIR = ROOT / "web" / "public" / "data"
 
 # ---------------------------------------------------------------------------
 # Día parsing

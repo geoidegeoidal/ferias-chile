@@ -12,6 +12,14 @@ import { initOnboarding, startTour } from './onboarding.js';
 
 async function main() {
   const loadingOverlay = document.getElementById('loading-overlay');
+  document.getElementById('retry-loading')?.addEventListener('click', () => window.location.reload());
+
+  function showError(message) {
+    if (!loadingOverlay || loadingOverlay.classList.contains('is-hidden')) return;
+    loadingOverlay.querySelector('.loading-text').textContent = message;
+    loadingOverlay.querySelector('.loading-spinner').style.display = 'none';
+    document.getElementById('retry-loading').hidden = false;
+  }
 
   try {
     // 1. Load data
@@ -20,6 +28,7 @@ async function main() {
 
     // 2. Initialize map
     const map = initMap(geojson);
+    map.once('error', () => showError('No se pudo cargar el mapa. Revisa tu conexión y reintenta.'));
 
     // 3. Initialize filters (after map is set up)
     map.on('load', () => {
@@ -42,11 +51,7 @@ async function main() {
 
   } catch (error) {
     console.error('❌ Error initializing app:', error);
-    if (loadingOverlay) {
-      loadingOverlay.querySelector('.loading-text').textContent = 
-        'Error al cargar datos. Recarga la página.';
-      loadingOverlay.querySelector('.loading-spinner').style.display = 'none';
-    }
+    showError('No se pudieron cargar las ferias. Revisa tu conexión y reintenta.');
   }
 }
 
@@ -60,14 +65,28 @@ function initMobileControls() {
 
   if (!toggle || !sidebar) return;
 
+  const mobile = window.matchMedia('(max-width: 768px)');
+  sidebar.inert = mobile.matches;
+  mobile.addEventListener('change', () => {
+    closeSidebar();
+  });
+
   function openSidebar() {
     sidebar.classList.add('is-open');
     backdrop?.classList.add('is-visible');
+    sidebar.inert = false;
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.setAttribute('aria-label', 'Cerrar filtros');
+    document.getElementById('filter-region')?.focus();
   }
 
   function closeSidebar() {
     sidebar.classList.remove('is-open');
     backdrop?.classList.remove('is-visible');
+    sidebar.inert = mobile.matches;
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Abrir filtros');
+    if (mobile.matches) toggle.focus();
   }
 
   toggle.addEventListener('click', () => {
@@ -79,6 +98,9 @@ function initMobileControls() {
   });
 
   backdrop?.addEventListener('click', closeSidebar);
+  sidebar.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeSidebar();
+  });
 }
 
 /**
@@ -91,15 +113,26 @@ function initStatsToggle() {
 
   if (!btnStats || !panel) return;
 
+  panel.inert = true;
+
+  function setOpen(open) {
+    panel.classList.toggle('is-open', open);
+    panel.inert = !open;
+    btnStats.classList.toggle('is-active', open);
+    btnStats.setAttribute('aria-expanded', String(open));
+    if (open) btnClose?.focus();
+    else btnStats.focus();
+  }
+
   btnStats.addEventListener('click', () => {
-    const isOpen = panel.classList.contains('is-open');
-    panel.classList.toggle('is-open', !isOpen);
-    btnStats.classList.toggle('is-active', !isOpen);
+    setOpen(!panel.classList.contains('is-open'));
   });
 
   btnClose?.addEventListener('click', () => {
-    panel.classList.remove('is-open');
-    btnStats?.classList.remove('is-active');
+    setOpen(false);
+  });
+  panel.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') setOpen(false);
   });
 }
 
@@ -143,4 +176,4 @@ function initHelpButton() {
 
 // Boot
 main();
-registerSW();
+if (import.meta.env.PROD) registerSW();

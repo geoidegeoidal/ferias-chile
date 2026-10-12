@@ -51,6 +51,9 @@
 }
 
 .btn--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 36px;
   height: 36px;
   padding: 0;
@@ -456,7 +459,7 @@
    MAP POPUP
    ============================================================ */
 .popup {
-  min-width: 280px;
+  min-width: min(280px, calc(100vw - 66px));
   max-width: 340px;
 }
 

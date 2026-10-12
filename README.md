@@ -1,151 +1,118 @@
-# Ferias Libres Chile — Mapa Interactivo
+# Ferias Libres de Chile
 
-> Una plataforma de datos abiertos para explorar las **1,764 ferias libres** de Chile. De un PowerBI embebido en WordPress a una experiencia de visualización de nivel mundial.
+Mapa interactivo para encontrar ferias libres por región, comuna, día y número de puestos. El conjunto de datos incluido contiene **1.764 ferias únicas, 284 comunas y las 16 regiones de Chile**, a partir de información publicada por ODEPA.
 
-[![Deploy](https://img.shields.io/badge/deploy-GitHub%20Pages-222?logo=github)](https://geoidegeoidal.github.io/ferias-chile/)
-[![Stack](https://img.shields.io/badge/stack-Vite%20%2B%20MapLibre%20%2B%20D3-2ecccc?logo=vite)](https://vitejs.dev/)
-[![Datos](https://img.shields.io/badge/datos-ODEPA%20%2F%20DSpace-005a9c)](https://bibliotecadigital.odepa.gob.cl/)
+**[Abrir el mapa](https://geoidegeoidal.github.io/ferias-chile/)** · [Fuente ODEPA](https://bibliotecadigital.odepa.gob.cl/) · [Repositorio](https://github.com/geoidegeoidal/ferias-chile)
 
----
+## Qué permite hacer
 
-## El Problema
+- Explorar ferias agrupadas en el mapa y consultar dirección, días, horario y puestos.
+- Combinar filtros por región, comuna, día de la semana y tamaño de feria.
+- Buscar ferias y comunas; buscar direcciones mediante Nominatim.
+- Encontrar ferias cercanas usando la ubicación del navegador y abrir indicaciones en Google Maps.
+- Consultar gráficos por región y día, ranking de comunas y distribución regional.
+- Alternar mapas claros y oscuros manteniendo los filtros y la ubicación.
+- Instalar el visor como PWA y reutilizar recursos previamente almacenados sin conexión.
 
-La plataforma oficial de ODEPA para consultar ferias libres consiste en una página de WordPress que embebe un reporte de **PowerBI**. Esta experiencia tiene limitaciones importantes:
+**“Abiertas hoy” significa que la feria tiene programado funcionar ese día de la semana.** No verifica apertura en este momento, feriados, suspensiones ni cambios posteriores al catastro. Los datos son una copia estática; el visor no consulta ODEPA en tiempo real.
 
-- **Rendimiento lento:** El iframe de PowerBI carga de forma pesada en dispositivos móviles.
-- **Sin acceso offline:** No se puede consultar sin conexión a internet.
-- **Sin geolocalización:** No hay forma de encontrar ferias cerca de tu ubicación.
-- **Difícil de compartir:** No es una app web progresiva (PWA) ni tiene metadatos sociales.
-- **Datos cerrados:** El Excel fuente está disponible en DSpace, pero no hay una API o consumo directo.
+## Ejecutar en local
 
-## La Solución
+Requiere **Node.js 20 o superior** y npm. Los datos del visor ya están incluidos: no necesitas instalar Python para usar el mapa.
 
-Transformamos los datos abiertos de ODEPA en una **aplicación web progresiva** con mapas interactivos, filtros avanzados, dashboard de estadísticas y soporte offline.
-
-### Características
-
-| Característica | Detalle |
-|---|---|
-| **Mapa Interactivo** | 1,764 ferias georreferenciadas con MapLibre GL JS, estilo dark "Observatorio". |
-| **Estado en Tiempo Real** | Puntos verdes para ferias abiertas hoy, grises para cerradas. Glow visual para abiertas. |
-| **Clustering Inteligente** | Agrupamiento automático con colores por densidad (cyan → violeta). |
-| **Filtros Avanzados** | Por región, comuna, día de la semana, rango de puestos y búsqueda fuzzy. |
-| **Búsqueda Fuzzy + Geocoding** | Multi-word highlighting en ferias locales + búsqueda de cualquier dirección de Chile vía Nominatim (OpenStreetMap). |
-| **Dashboard de Estadísticas** | Heatmap semanal (Región × Día), ranking de comunas y treemap de regiones con D3.js. |
-| **Geolocalización** | Encuentra tu ubicación, muestra ferias cercanas y calcula distancia. |
-| **PWA + Offline** | Service Worker con cache de app shell, datos y tiles de mapa. Funciona sin conexión. |
-| **Diseño Responsive** | Sidebar adaptable, controles táctiles, optimizado para móvil y desktop. |
-| **SEO Completo** | Open Graph, Twitter Cards, JSON-LD, canonical tags, manifest.json. |
-| **Mapa Claro / Oscuro** | Toggle instantáneo entre CartoDB Positron (claro) y Dark Matter (oscuro). Persiste preferencia. |
-| **Tour Guiado** | Onboarding interactivo responsive para nuevos usuarios. Tooltips se reposicionan automáticamente si no caben en pantalla. Se reinicia desde "?". |
-| **Ferias Cercanas** | Al buscar una dirección, el popup muestra las 3 ferias más cercanas con distancia en metros/km (Haversine). Click para volar a cada feria. |
-
----
-
-## Stack Tecnológico
-
-| Capa | Tecnología |
-|---|---|
-| **Bundler** | Vite 6 (Vanilla JS) |
-| **Mapas** | MapLibre GL JS 4.7 + CartoDB Positron / Dark Matter |
-| **Visualización** | D3.js 7 (tree-shakeable) |
-| **Estilos** | CSS Vanilla con Custom Properties (Design System "Observatorio") |
-| **Tipografía** | Sora (Display), DM Sans (Body), JetBrains Mono (Data) |
-| **Datos** | GeoJSON estático generado desde Excel de ODEPA |
-| **Deploy** | GitHub Pages (`docs/` folder) |
-
----
-
-## Fuentes de Datos
-
-| Fuente | Estado | Detalle |
-|---|---|---|
-| **ODEPA Biblioteca Digital (DSpace)** | Activo | Excel `Ferias_Pais_PowerBI.xlsx` — 2,535 registros (todas las regiones). |
-| **ODEPA PowerBI** | Referencia | El reporte se alimenta del mismo Excel; no requiere scraping. |
-| **Sercotec Catastro 2025** | No disponible | Sitios caídos (SSL expirado, 404). Script listo para cuando vuelvan. |
-
-**Cobertura final:** 16 regiones, 284 comunas, 1,764 ferias únicas, 100% con coordenadas.
-
----
-
-## Arquitectura del Frontend
-
-```
-web/
-├── index.html              # App shell: CSP, SEO, JSON-LD, PWA meta tags
-├── vite.config.js          # base: '/ferias-chile/', outDir: '../docs'
-├── css/
-│   ├── design-system.css   # Tokens, reset, tipografía
-│   ├── layout.css          # Grid, sidebar, mapa, responsive
-│   ├── components.css      # Botones, filtros, badges, popups, charts, onboarding
-│   └── animations.css      # Keyframes, utilidades, reduced-motion
-├── js/
-│   ├── app.js              # Entry point, orquestación, registro de SW
-│   ├── data.js             # Estado, filtros combinados, normalización
-│   ├── map.js              # MapLibre, markers, clustering, popups, geolocalización
-│   ├── filters.js          # UI de filtros (región, comuna, día, puestos, badges)
-│   ├── search.js           # Búsqueda fuzzy con highlighting y keyboard nav
-│   ├── stats.js            # D3.js: heatmap, ranking, treemap
-│   └── onboarding.js       # Tour guiado interactivo (spotlight + tooltips)
-└── public/                 # Copiado estático a docs/
-    ├── data/
-    │   ├── ferias.json     # GeoJSON (1,764 features)
-    │   └── stats.json      # Estadísticas pre-computadas
-    ├── icons/              # Iconos PNG 192/512 + maskable + OG image
-    ├── manifest.json       # PWA manifest
-    └── sw.js               # Service Worker (cache estático + tiles)
-```
-
----
-
-## Cómo Ejecutar
-
-```bash
-# 1. Instalar dependencias
-cd web
-npm install
-
-# 2. Modo desarrollo
+```sh
+git clone https://github.com/geoidegeoidal/ferias-chile.git
+cd ferias-chile/web
+npm ci
 npm run dev
+```
 
-# 3. Build para producción (genera docs/)
+Abre [http://localhost:3000/ferias-chile/](http://localhost:3000/ferias-chile/). Si el puerto está ocupado, Vite informa el puerto alternativo en la terminal.
+
+## Pruebas y compilación
+
+Desde `web/`:
+
+```sh
+npm test
 npm run build
+npm run preview
 ```
 
----
+- `npm test` ejecuta regresiones con el runner de Node: conservación de capas al cambiar el mapa, control de puestos con teclado, accesibilidad de paneles, recuperación de errores y búsqueda sin respuestas obsoletas. No necesita un proveedor cartográfico ni un GPS real. Node puede mostrar un aviso sobre sus módulos VM experimentales.
+- `npm run build` genera el sitio en `docs/`, una carpeta ignorada por Git.
+- `npm run preview` sirve esa compilación; usa la dirección indicada en la terminal.
 
-## Pipeline de Datos
+Para validar visualmente, comprueba ambos temas, los filtros combinados, la búsqueda, las estadísticas y la navegación con Tab y Escape. En móvil, verifica el buscador y la apertura/cierre de filtros. Las pruebas de módulos no sustituyen estas comprobaciones en navegador.
 
-```bash
-# Extraer datos de ODEPA DSpace
-python scripts/odepa_dspace.py
+## Mapa base y servicios externos
 
-# Normalizar y generar CSV/JSON
-python scripts/normalize.py
+El mapa usa **MapLibre GL JS** y los estilos vectoriales de [OpenFreeMap](https://openfreemap.org/):
 
-# Generar GeoJSON + stats.json para el frontend
-python scripts/build_web_data.py
+| Tema | Estilo |
+| --- | --- |
+| Oscuro | `https://tiles.openfreemap.org/styles/dark` |
+| Claro | `https://tiles.openfreemap.org/styles/positron` |
+
+Los estilos conservan una apariencia cercana a Dark Matter y Positron. No necesitan cuenta ni clave API. La atribución de OpenMapTiles y OpenStreetMap se muestra en el mapa. La configuración está en `web/js/map.js`; la política de recursos externos está en `web/index.html`.
+
+La búsqueda de direcciones depende de [Nominatim](https://nominatim.org/). Los resultados de ferias locales aparecen sin esperar su respuesta. La geolocalización requiere permiso del usuario y un contexto seguro: HTTPS o localhost.
+
+El mapa base, la búsqueda de direcciones y las fuentes web dependen de servicios externos. OpenFreeMap no ofrece una garantía de disponibilidad para su instancia pública.
+
+## PWA y modo offline
+
+El service worker **solo se registra en producción**, para evitar que una caché antigua interfiera con el desarrollo. Usa `npm run build` y `npm run preview` para probar su comportamiento.
+
+Se almacenan la página, los recursos cargados, los datos y hasta 500 recursos cartográficos. El modo offline permite consultar contenido ya visitado; **no descarga todo Chile ni garantiza nuevas zonas o niveles de zoom sin conexión**. La búsqueda de direcciones necesita red.
+
+Cuando cambies el app shell o el proveedor cartográfico, actualiza las versiones correspondientes en `web/public/sw.js`. Para comprobar una actualización de PWA, recarga después de que se active el nuevo service worker.
+
+## Estructura
+
+```text
+ferias-chile/
+├── data/                       # Datos normalizados y fuentes descargadas
+├── scripts/                    # Extracción, normalización y generación del visor
+├── web/
+│   ├── index.html              # Página, SEO, favicon y política CSP
+│   ├── js/                     # Mapa, datos, filtros, búsqueda, gráficos y tour
+│   ├── css/                    # Diseño y comportamiento responsive
+│   ├── public/
+│   │   ├── data/               # GeoJSON y estadísticas usados por el sitio
+│   │   ├── icons/              # Favicon SVG/PNG e iconos PWA
+│   │   ├── manifest.json
+│   │   └── sw.js
+│   ├── tests/                  # Pruebas de regresión
+│   └── vite.config.js
+└── .github/workflows/deploy.yml # Compilación y publicación en GitHub Pages
 ```
 
----
+El favicon tiene como fuente editable `web/public/icons/favicon.svg`: un puesto de feria en la paleta del visor. Se incluye PNG de 32 px, iconos PWA de 192/512 px y una variante maskable con margen de seguridad.
 
-## Design System: Paleta "Observatorio"
+## Actualizar los datos
 
-Inspirada en dashboards premium como Kepler.gl.
+El frontend funciona con los JSON versionados. Para volver a obtener datos, necesitas Python y las dependencias de `requirements.txt`. Desde la raíz del repositorio:
 
-- **Fondo:** Deep Black `hsl(225, 25%, 6%)`
-- **Acento Primario:** Cyan Eléctrico `hsl(185, 80%, 55%)`
-- **Acento Secundario:** Violeta `hsl(260, 50%, 65%)`
-- **Acento Terciario:** Ámbar `hsl(38, 90%, 60%)`
-- **Semánticos:** Verde Menta (Abierto) / Gris (Cerrado)
+```sh
+python -m pip install -r requirements.txt
+python -X utf8 scripts/odepa_dspace.py
+python -X utf8 scripts/normalize.py
+python -X utf8 scripts/build_web_data.py
+```
 
----
+El último comando escribe `ferias.json` y `stats.json` en **`web/public/data/`**, que Vite copia al sitio compilado. Revisa conteos, coordenadas y cambios de esquema antes de publicar; después vuelve a ejecutar las pruebas y la compilación.
 
-## Licencia
+La fuente principal es `Ferias_Pais_PowerBI.xlsx` de la Biblioteca Digital de ODEPA. Los scripts de Sercotec y PowerBI son exploratorios y no forman parte del flujo necesario para ejecutar el visor.
 
-Los datos provienen de [ODEPA](https://www.odepa.gob.cl/) y están disponibles bajo sus términos de datos abiertos.
-El código de este proyecto está bajo licencia MIT.
+## Publicar
 
----
+GitHub Actions instala dependencias con `npm ci`, ejecuta las pruebas, compila `web/` y publica `docs/` cuando recibe un push a `master` o se ejecuta manualmente. En GitHub Pages, selecciona **GitHub Actions** como origen.
 
-> Hecho con datos abiertos para vecinos curiosos.
+La ruta pública es `/ferias-chile/`. Si cambias el nombre o la ruta del sitio, revisa `web/vite.config.js`, las rutas del manifest y service worker, y las URL públicas de `web/index.html`.
+
+## Stack y fuentes
+
+Vite 6, JavaScript sin framework, MapLibre GL JS 4.7, D3.js 7 y CSS con propiedades personalizadas. El pipeline usa Python, pandas y openpyxl.
+
+Los datos proceden de ODEPA y deben usarse respetando sus términos y atribución. La cartografía utiliza datos de OpenStreetMap bajo sus condiciones. Este repositorio no incluye actualmente un archivo `LICENSE` para el código; no se presupone una licencia MIT.
